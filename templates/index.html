@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube to MP3 Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 8px;
+            margin: 10px 0;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .flash {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f44336;
+            color: white;
+        }
+        .loader {
+            display: none;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube to MP3 Downloader</h1>
+        <form id="downloadForm" method="post">
+            <input type="text" name="url" placeholder="Enter YouTube URL" required>
+            <br>
+            <input type="submit" value="Download MP3">
+        </form>
+        <div id="loader" class="loader"></div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        document.getElementById('downloadForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            // Show loader when form is submitted
+            document.getElementById('loader').style.display = 'block';
+            // Disable the submit button to prevent multiple submissions
+            document.querySelector('input[type="submit"]').disabled = true;
+
+            var formData = new FormData(this);
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob()) // Process the response as a blob
+            .then(blob => {
+                // Create a link to download the file
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'download.mp3'; // Adjust this based on the filename you want
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Hide loader and enable the button after the download starts
+                document.getElementById('loader').style.display = 'none';
+                document.querySelector('input[type="submit"]').disabled = false;
+            })
+            .catch(error => {
+                // Handle error
+                alert('Error during download: ' + error);
+                document.getElementById('loader').style.display = 'none';
+                document.querySelector('input[type="submit"]').disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
